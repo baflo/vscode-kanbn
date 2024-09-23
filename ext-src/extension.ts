@@ -39,7 +39,13 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
       )
       return
     }
+
     const boardNames: string[] = [...boardCache.keys()]
+
+    if (boardCache.size === 1) {
+      return boardNames[0];
+    }
+
     const options: vscode.QuickPickOptions = { placeHolder: 'Select a board to open', canPickMany: false }
     const item: string | undefined = await vscode.window.showQuickPick(
       boardNames,
