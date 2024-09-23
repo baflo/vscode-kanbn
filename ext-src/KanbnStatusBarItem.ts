@@ -14,6 +14,10 @@ export default class KanbnStatusBarItem {
     this._kanbn = kanbn
   }
 
+  public getActiveKanbn (): Kanbn | null {
+    return this._kanbn
+  }
+
   async update (kanbn: Kanbn): Promise<void> {
     if (this._statusBarItem === undefined) {
       return

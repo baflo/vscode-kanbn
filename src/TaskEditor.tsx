@@ -262,6 +262,11 @@ const TaskEditor = (): JSX.Element => {
   }
 
   const processMessage = useCallback(event => {
+    if (event.data?.command === 'saveRequest') {
+      void handleSubmit(handleTaskSave)()
+      return
+    }
+
     const tasks = Object.fromEntries((event.data.tasks ?? []).map(task => [task.id, task]))
     const newState: TaskState = {
       // TODO: Not sure yet if name is necessary. Definitely won't be necessary in the future

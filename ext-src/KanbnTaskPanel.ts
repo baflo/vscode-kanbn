@@ -70,7 +70,7 @@ function transformTaskData (
 }
 
 export default class KanbnTaskPanel {
-  private static readonly viewType = 'react'
+  private static readonly viewType = 'KanbnTaskPanel'
 
   private readonly _panel: vscode.WebviewPanel
   private readonly _extensionPath: string
@@ -84,6 +84,10 @@ export default class KanbnTaskPanel {
   public async show (): Promise<void> {
     void this.update()
     this._panel.reveal()
+  }
+
+  public sendSaveRequest (): void {
+    void this._panel?.webview.postMessage({ command: 'saveRequest' })
   }
 
   constructor (

@@ -21,7 +21,7 @@ const sortByFields: Record<string, string> = {
 }
 
 export default class KanbnBoardPanel {
-  private static readonly viewType = 'react'
+  private static readonly viewType = 'KanbnBoardPanel'
   // Maps a kanbn task ID to the KanbnTaskPanel instance
   private readonly openedTaskPanels = new Map<string, KanbnTaskPanel>()
   private readonly _extensionPath: string
@@ -37,6 +37,12 @@ export default class KanbnBoardPanel {
       await this.setUpPanel()
     }
     this._panel?.reveal(this.column)
+  }
+
+  public getTaskPanel (taskId: string | null): KanbnTaskPanel | undefined {
+    if (taskId != null) {
+      return this.openedTaskPanels.get(taskId) as KanbnTaskPanel
+    }
   }
 
   public showTaskPanel (taskId: string | null, column: string | null = null): void {

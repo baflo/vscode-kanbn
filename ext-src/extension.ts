@@ -32,7 +32,7 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
     }
   }
 
-  async function chooseBoard (): Promise<string | undefined> {
+  async function chooseBoard (reuseActiveBoard = true): Promise<string | undefined> {
     if (boardCache.size === 0) {
       void vscode.window.showErrorMessage(
         'No boards detected. Open a workspace with Kanbn boards or add Additional Boards to the global user configuration'
@@ -42,16 +42,35 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
 
     const boardNames: string[] = [...boardCache.keys()]
 
+    // If a board is already loaded in status bar, re-use this
+    if (reuseActiveBoard && (kanbnStatusBarItem.getActiveKanbn() != null)) {
+      for (const [key, board] of boardCache.entries()) {
+        if (board.kanbn === kanbnStatusBarItem.getActiveKanbn()) {
+          return key
+        }
+      }
+    }
+
+    // If only one board is in the cache, use that one
     if (boardCache.size === 1) {
-      return boardNames[0];
+      const kanbn = (await boardCache.get(boardNames[0]))?.kanbn
+      if (kanbn != null) void kanbnStatusBarItem.update(kanbn)
+
+      return boardNames[0]
     }
 
     const options: vscode.QuickPickOptions = { placeHolder: 'Select a board to open', canPickMany: false }
-    const item: string | undefined = await vscode.window.showQuickPick(
+    const boardId: string | undefined = await vscode.window.showQuickPick(
       boardNames,
       options
     )
-    return item
+
+    if (boardId !== undefined) {
+      const kanbn = (await boardCache.get(boardId))?.kanbn
+      if (kanbn != null) void kanbnStatusBarItem.update(kanbn)
+    }
+
+    return boardId
   }
 
   function populateBoardCache (): void {
@@ -154,7 +173,7 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
   // in a workspace where kanbn has already been initialised.
   context.subscriptions.push(
     vscode.commands.registerCommand('kanbn.openBoard', async () => {
-      const board = await chooseBoard()
+      const board = await chooseBoard(false)
       if (board === undefined) { return }
 
       const kanbnTuple = boardCache.get(board)
@@ -162,7 +181,6 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
 
       // If kanbn is initialised, view the kanbn board
       void kanbnTuple.kanbnBoardPanel.show()
-      void kanbnStatusBarItem.update(kanbnTuple.kanbn)
     })
   )
 
@@ -179,6 +197,36 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
 
       // Open the task webview
       kanbnTuple.kanbnBoardPanel.showTaskPanel(null)
+    })
+  )
+
+  // Register a command to save the current task
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kanbn.saveTask', async () => {
+      // If no workspace folder is opened, we can't open a task
+      if (vscode.workspace.workspaceFolders === undefined) {
+        void vscode.window.showErrorMessage('You need to open a workspace before opening a task.')
+        return
+      }
+
+      // Choose board to open a task from
+      const board = await chooseBoard()
+      if (board === undefined) return
+
+      // Set the node process directory and import kanbn
+      const kanbnTuple = boardCache.get(board)
+      if (kanbnTuple === undefined) { return }
+
+      // Use label of tab as taskId
+      const taskId = formatAsTaskId(vscode.window.tabGroups.activeTabGroup?.activeTab?.label)
+
+      if (taskId !== undefined) {
+        const panel = kanbnTuple.kanbnBoardPanel.getTaskPanel(taskId)
+
+        if (panel !== undefined) {
+          panel.sendSaveRequest()
+        }
+      }
     })
   )
 
@@ -230,6 +278,37 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
     })
   )
 
+  // Register a command to open an existing kanbn task.
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kanbn.openTaskFile', async () => {
+      // If no workspace folder is opened, we can't open a task
+      if (vscode.workspace.workspaceFolders === undefined) {
+        void vscode.window.showErrorMessage('You need to open a workspace before opening a task.')
+        return
+      }
+
+      // Choose board to open a task from
+      const board = await chooseBoard()
+      if (board === undefined) return
+
+      // Set the node process directory and import kanbn
+      const kanbnTuple = boardCache.get(board)
+      if (kanbnTuple === undefined) { return }
+
+      // Use label of tab as taskId
+      const taskId = formatAsTaskId(vscode.window.tabGroups.activeTabGroup?.activeTab?.label)
+
+      if (taskId !== undefined) {
+        const folderPath = await kanbnTuple.kanbn.getTaskFolderPath()
+        const taskFilename = taskId.replace(/(?<!\.md)$/, '.md')
+        const taskPath = path.join(folderPath, taskFilename)
+
+        const taskfileEditor = vscode.workspace.getConfiguration('kanbn').get<boolean>('taskfileEditor')
+        await vscode.commands.executeCommand('vscode.openWith', vscode.Uri.file(taskPath), taskfileEditor)
+      }
+    })
+  )
+
   // Register a command to open a burndown chart.
   context.subscriptions.push(
     vscode.commands.registerCommand('kanbn.burndown', async () => {
@@ -242,7 +321,6 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
       // If kanbn is initialised, view the burndown chart
       kanbnTuple.kanbnBurnDownPanel.show()
       void kanbnTuple.kanbnBurnDownPanel.update()
-      void kanbnStatusBarItem.update(kanbnTuple.kanbn)
     })
   )
 
@@ -259,7 +337,7 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
       let tasks: string[] = []
       try {
         tasks = [...await kanbnTuple.kanbn.findTrackedTasks()]
-      } catch (e) {}
+      } catch (e) { }
       if (tasks.length === 0) {
         void vscode.window.showInformationMessage('There are no tasks to archive.')
         return
@@ -300,7 +378,7 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
       let archivedTasks: string[] = []
       try {
         archivedTasks = await kanbnTuple.kanbn.listArchivedTasks()
-      } catch (e) {}
+      } catch (e) { }
       if (archivedTasks.length === 0) {
         void vscode.window.showInformationMessage('There are no archived tasks to restore.')
         return
@@ -352,4 +430,8 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
       void kanbnTuple.kanbnBoardPanel.update()
     }
   })
+}
+
+function formatAsTaskId (label: string | undefined): string | undefined {
+  return label?.toLowerCase().replace(/\s+/g, '-')
 }

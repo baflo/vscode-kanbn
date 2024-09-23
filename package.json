@@ -66,6 +66,18 @@
         "category": "Kanbn"
       },
       {
+        "command": "kanbn.saveTask",
+        "title": "Save task",
+        "category": "Kanbn",
+        "enablement": "activeWebviewPanelId === 'KanbnTaskPanel'"
+      },
+      {
+        "command": "kanbn.openTaskFile",
+        "title": "Open task file",
+        "category": "Kanbn",
+        "enablement": "activeWebviewPanelId === 'KanbnTaskPanel'"
+      },
+      {
         "command": "kanbn.burndown",
         "title": "Open burndown chart",
         "category": "Kanbn"
@@ -79,6 +91,16 @@
         "command": "kanbn.restoreTasks",
         "title": "Restore tasks",
         "category": "Kanbn"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "kanbn.saveTask",
+        "key": "ctrl+s"
+      },
+      {
+        "command": "kanbn.openTaskFile",
+        "key": "F4"
       }
     ],
     "configuration": {
@@ -108,6 +130,11 @@
           "type": "boolean",
           "default": false,
           "description": "Show a 'Burndown chart' button on the Kanbn board."
+        },
+        "kanbn.taskfileEditor": {
+          "type": "string",
+          "default": "vscode.markdown.preview.editor",
+          "description": "Set the editor to be used when opening task source files."
         }
       }
     }
@@ -132,12 +159,13 @@
     "terser": "5.16.0",
     "throttle-debounce": "^5.0.0",
     "uuid": "^9.0.0",
-    "vscode-codicons": "^0.0.17"
+    "vscode-codicons": "^0.0.17",
+    "vscode-kanbn-boards": "file:"
   },
   "scripts": {
-    "vscode:prepublish": "./scripts/build-non-split.js && tsc -p tsconfig.extension.json",
+    "vscode:prepublish": "node ./scripts/build-non-split.js && tsc -p tsconfig.extension.json",
     "start": "react-scripts start",
-    "build": "./scripts/build-non-split.js && tsc -p tsconfig.extension.json",
+    "build": "node ./scripts/build-non-split.js && tsc -p tsconfig.extension.json",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
