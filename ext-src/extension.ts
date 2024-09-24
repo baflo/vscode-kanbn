@@ -304,7 +304,12 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
         const taskPath = path.join(folderPath, taskFilename)
 
         const taskfileEditor = vscode.workspace.getConfiguration('kanbn').get<boolean>('taskfileEditor')
-        await vscode.commands.executeCommand('vscode.openWith', vscode.Uri.file(taskPath), taskfileEditor)
+        try {
+          await vscode.commands.executeCommand('vscode.openWith', vscode.Uri.file(taskPath), taskfileEditor)
+        } catch {
+          const textDoc = await vscode.workspace.openTextDocument(taskPath)
+          await vscode.window.showTextDocument(textDoc)
+        }
       }
     })
   )
