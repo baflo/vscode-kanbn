@@ -14,6 +14,7 @@ jobs:
           node-version: 20
       - run: npm ci
       - name: Create package
+        id: createPackage
         uses: HaaLeo/publish-vscode-extension@v1
         with:
           dryRun: true
@@ -26,4 +27,5 @@ jobs:
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
               --title="${tag#v}" \
-              --generate-notes
+              --generate-notes \
+              "${{ steps.createPackage.outputs.vsixPath }}#VSCode Extension Package File"
