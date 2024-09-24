@@ -217,16 +217,7 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
       const kanbnTuple = boardCache.get(board)
       if (kanbnTuple === undefined) { return }
 
-      // Use label of tab as taskId
-      const taskId = formatAsTaskId(vscode.window.tabGroups.activeTabGroup?.activeTab?.label)
-
-      if (taskId !== undefined) {
-        const panel = kanbnTuple.kanbnBoardPanel.getTaskPanel(taskId)
-
-        if (panel !== undefined) {
-          panel.sendSaveRequest()
-        }
-      }
+      kanbnTuple.kanbnBoardPanel.getActiveTaskPanel()?.sendSaveRequest()
     })
   )
 
@@ -296,21 +287,7 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
       if (kanbnTuple === undefined) { return }
 
       // Use label of tab as taskId
-      const taskId = formatAsTaskId(vscode.window.tabGroups.activeTabGroup?.activeTab?.label)
-
-      if (taskId !== undefined) {
-        const folderPath = await kanbnTuple.kanbn.getTaskFolderPath()
-        const taskFilename = taskId.replace(/(?<!\.md)$/, '.md')
-        const taskPath = path.join(folderPath, taskFilename)
-
-        const taskfileEditor = vscode.workspace.getConfiguration('kanbn').get<boolean>('taskfileEditor')
-        try {
-          await vscode.commands.executeCommand('vscode.openWith', vscode.Uri.file(taskPath), taskfileEditor)
-        } catch {
-          const textDoc = await vscode.workspace.openTextDocument(taskPath)
-          await vscode.window.showTextDocument(textDoc)
-        }
-      }
+      await kanbnTuple.kanbnBoardPanel.getActiveTaskPanel()?.showTaskFilePanel()
     })
   )
 
@@ -435,8 +412,4 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
       void kanbnTuple.kanbnBoardPanel.update()
     }
   })
-}
-
-function formatAsTaskId (label: string | undefined): string | undefined {
-  return label?.toLowerCase().replace(/\s+/g, '-')
 }

@@ -23,7 +23,7 @@ const sortByFields: Record<string, string> = {
 export default class KanbnBoardPanel {
   private static readonly viewType = 'KanbnBoardPanel'
   // Maps a kanbn task ID to the KanbnTaskPanel instance
-  private readonly openedTaskPanels = new Map<string, KanbnTaskPanel>()
+  private readonly openedTaskPanels = new Map<string | symbol, KanbnTaskPanel>()
   private readonly _extensionPath: string
   private readonly _workspacePath: string
   private readonly column: vscode.ViewColumn
@@ -39,6 +39,10 @@ export default class KanbnBoardPanel {
     this._panel?.reveal(this.column)
   }
 
+  public getActiveTaskPanel (): KanbnTaskPanel | undefined {
+    return Array.from(this.openedTaskPanels.values()).find(v => v.isActive())
+  }
+
   public getTaskPanel (taskId: string | null): KanbnTaskPanel | undefined {
     if (taskId != null) {
       return this.openedTaskPanels.get(taskId) as KanbnTaskPanel
@@ -48,10 +52,8 @@ export default class KanbnBoardPanel {
   public showTaskPanel (taskId: string | null, column: string | null = null): void {
     let panel: KanbnTaskPanel
     if (taskId == null || !this.openedTaskPanels.has(taskId)) {
-      panel = new KanbnTaskPanel(this._extensionPath, this._workspacePath, this._kanbn, this._kanbnFolderName, taskId, column, this.openedTaskPanels)
-      if (taskId != null) {
-        this.openedTaskPanels.set(taskId, panel)
-      }
+      panel = new KanbnTaskPanel(this._extensionPath, this._workspacePath, this._kanbn, this._kanbnFolderName, taskId ?? Symbol('prelim-task-id'), column, this.openedTaskPanels)
+      this.openedTaskPanels.set(panel.getTaskId(), panel)
     } else {
       panel = this.openedTaskPanels.get(taskId) as KanbnTaskPanel
     }

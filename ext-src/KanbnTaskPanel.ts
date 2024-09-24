@@ -77,7 +77,7 @@ export default class KanbnTaskPanel {
   private readonly _workspacePath: string
   private readonly _kanbn: Kanbn
   private readonly _kanbnFolderName: string
-  private _taskId: string | null
+  private _taskId: string | symbol
   private readonly _defaultColumn: string | null
   private readonly _disposables: vscode.Disposable[] = []
 
@@ -95,9 +95,9 @@ export default class KanbnTaskPanel {
     workspacePath: string,
     kanbn: Kanbn,
     kanbnFolderName: string,
-    taskId: string | null,
+    taskId: string | symbol,
     defaultColumn: string | null,
-    taskCache: Map<string, KanbnTaskPanel>
+    taskCache: Map<string | symbol, KanbnTaskPanel>
   ) {
     const column = vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One
     this._extensionPath = extensionPath
@@ -130,7 +130,7 @@ export default class KanbnTaskPanel {
     }
 
     // Set the webview's title to the kanbn task name
-    if (this._taskId !== null) {
+    if (typeof this._taskId === 'string') {
       void this._kanbn.getTask(this._taskId).then((task) => {
         this._panel.title = task.name
       })
@@ -159,12 +159,13 @@ export default class KanbnTaskPanel {
 
           // Create a task
           case 'kanbn.updateOrCreate':
-            if (this._taskId === null) {
+            if (typeof this._taskId === 'symbol') {
               await this._kanbn.createTask(
                 transformTaskData(message.taskData, message.customFields),
                 message.taskData.column
               )
               this._panel.onDidDispose((e) => { if (this._taskId !== null) taskCache.delete(this._taskId) })
+              taskCache.delete(this._taskId)
               taskCache.set(message.taskData.id, this)
               void this.update()
               if (vscode.workspace.getConfiguration('kanbn').get<boolean>('showTaskNotifications') ?? true) {
@@ -194,12 +195,15 @@ export default class KanbnTaskPanel {
 
           // Delete a task and close the webview panel
           case 'kanbn.delete': {
-            const taskName: string = (await this._kanbn.getTask(this._taskId ?? '')).name
+            const deleteTaskId = this._taskId
+            if (typeof deleteTaskId !== 'string') return
+
+            const taskName: string = (await this._kanbn.getTask(deleteTaskId)).name
             void vscode.window
               .showInformationMessage(`Delete task '${taskName}'?`, 'Yes', 'No')
               .then(async (value) => {
                 if (value === 'Yes') {
-                  if (this._taskId !== null) { await this._kanbn.deleteTask(this._taskId, true) }
+                  await this._kanbn.deleteTask(deleteTaskId, true)
                   this.dispose()
                   if (vscode.workspace.getConfiguration('kanbn').get<boolean>('showTaskNotifications') ?? true) {
                     void vscode.window.showInformationMessage(`Deleted task '${taskName}'.`)
@@ -211,6 +215,8 @@ export default class KanbnTaskPanel {
 
           // Archive a task and close the webview panel
           case 'kanbn.archive': {
+            if (typeof this._taskId !== 'string') return
+
             const taskName: string = (await this._kanbn.getTask(this._taskId ?? '')).name
             if (this._taskId !== null) await this._kanbn.archiveTask(this._taskId)
             this.dispose()
@@ -233,6 +239,34 @@ export default class KanbnTaskPanel {
       if (x != null) {
         x.dispose()
       }
+    }
+  }
+
+  public async showTaskFilePanel (): Promise<void> {
+    if (typeof this._taskId === 'string') {
+      const folderPath = path.join(this._kanbnFolderName, '.kanbn')
+      const taskFilename = this._taskId.replace(/(?<!\.md)$/, '.md')
+      const taskPath = path.join(folderPath, 'tasks', taskFilename)
+
+      const taskfileEditor = vscode.workspace.getConfiguration('kanbn').get<boolean>('taskfileEditor')
+      try {
+        await vscode.commands.executeCommand('vscode.openWith', vscode.Uri.file(taskPath), taskfileEditor)
+      } catch {
+        const textDoc = await vscode.workspace.openTextDocument(taskPath)
+        await vscode.window.showTextDocument(textDoc)
+      }
+    }
+  }
+
+  public getTaskId (): string | symbol {
+    return this._taskId
+  }
+
+  public isActive (): boolean {
+    try {
+      return this._panel.active
+    } catch {
+      return false
     }
   }
 
