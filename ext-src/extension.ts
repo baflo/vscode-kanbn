@@ -6,14 +6,14 @@ import KanbnBurndownPanel from './KanbnBurndownPanel'
 import { Kanbn } from '@basementuniverse/kanbn/src/main'
 import * as fs from 'fs'
 
-export async function activate (context: vscode.ExtensionContext): Promise<void> {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const kanbnStatusBarItem: KanbnStatusBarItem = new KanbnStatusBarItem(context, null)
   const boardCache = new Map<string, KanbnTuple>()
   class KanbnTuple {
     kanbn: Kanbn
     kanbnBoardPanel: KanbnBoardPanel
     kanbnBurnDownPanel: KanbnBurndownPanel
-    constructor (boardLocation: string) {
+    constructor(boardLocation: string) {
       if (vscode.workspace.workspaceFolders == null) {
         throw new Error('A workspace folder should be open when creating Kanbn board panels')
       }
@@ -32,7 +32,7 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
     }
   }
 
-  async function chooseBoard (reuseActiveBoard = true): Promise<string | undefined> {
+  async function chooseBoard(reuseActiveBoard = true): Promise<string | undefined> {
     if (boardCache.size === 0) {
       void vscode.window.showErrorMessage(
         'No boards detected. Open a workspace with Kanbn boards or add Additional Boards to the global user configuration'
@@ -73,7 +73,7 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
     return boardId
   }
 
-  function populateBoardCache (): void {
+  function populateBoardCache(): void {
     const boardLocations = new Set<string>()
 
     // Get globally accessible board locations.
@@ -218,6 +218,48 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
       if (kanbnTuple === undefined) { return }
 
       kanbnTuple.kanbnBoardPanel.getActiveTaskPanel()?.sendSaveRequest()
+    })
+  )
+
+  // Register a command to return the ID of the current task
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kanbn.getActiveTaskId', async () => {
+      // If no workspace folder is opened, we can't open a task
+      if (vscode.workspace.workspaceFolders === undefined) {
+        void vscode.window.showErrorMessage('You need to open a workspace before opening a task.')
+        return
+      }
+
+      // Choose board to open a task from
+      const board = await chooseBoard()
+      if (board === undefined) return
+
+      // Set the node process directory and import kanbn
+      const kanbnTuple = boardCache.get(board)
+      if (kanbnTuple === undefined) return
+
+      return kanbnTuple.kanbnBoardPanel.getActiveTaskPanel()?.getTaskId()
+    })
+  )
+
+  // Register a command to return the current title of the current task
+  context.subscriptions.push(
+    vscode.commands.registerCommand('kanbn.getActiveTaskTitle', async () => {
+      // If no workspace folder is opened, we can't open a task
+      if (vscode.workspace.workspaceFolders === undefined) {
+        void vscode.window.showErrorMessage('You need to open a workspace before opening a task.')
+        return
+      }
+
+      // Choose board to open a task from
+      const board = await chooseBoard()
+      if (board === undefined) return
+
+      // Set the node process directory and import kanbn
+      const kanbnTuple = boardCache.get(board)
+      if (kanbnTuple === undefined) return
+
+      return kanbnTuple.kanbnBoardPanel.getActiveTaskPanel()?.getCurrentTaskTitle()
     })
   )
 

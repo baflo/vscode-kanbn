@@ -262,6 +262,10 @@ export default class KanbnTaskPanel {
     return this._taskId
   }
 
+  public getCurrentTaskTitle (): string {
+    return this._panel.title
+  }
+
   public isActive (): boolean {
     try {
       return this._panel.active

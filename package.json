@@ -75,6 +75,18 @@
         "enablement": "activeWebviewPanelId === 'KanbnTaskPanel'"
       },
       {
+        "command": "kanbn.getActiveTaskId",
+        "title": "Get task ID",
+        "category": "Kanbn",
+        "enablement": "false"
+      },
+      {
+        "command": "kanbn.getActiveTaskTitle",
+        "title": "Get current task title",
+        "category": "Kanbn",
+        "enablement": "false"
+      },
+      {
         "command": "kanbn.openTaskFile",
         "title": "Open task file",
         "category": "Kanbn",
@@ -162,8 +174,7 @@
     "terser": "5.16.0",
     "throttle-debounce": "^5.0.0",
     "uuid": "^9.0.0",
-    "vscode-codicons": "^0.0.17",
-    "vscode-kanbn-boards": "file:"
+    "vscode-codicons": "^0.0.17"
   },
   "scripts": {
     "vscode:prepublish": "node ./scripts/build-non-split.js && tsc -p tsconfig.extension.json",
