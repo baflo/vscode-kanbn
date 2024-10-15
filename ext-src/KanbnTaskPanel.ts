@@ -302,6 +302,7 @@ export default class KanbnTaskPanel {
     let task: any = null
     if (this._taskId !== null) {
       task = tasks.find((t) => t.id === this._taskId) ?? null
+      await this.loadOtherTaskData(task)
     }
 
     // Use column of task, or first column if task doesn't exist yet.
@@ -317,6 +318,21 @@ export default class KanbnTaskPanel {
       dateFormat: this._kanbn.getDateFormat(index)
     }
   }
+
+  private async loadOtherTaskData(task: any) {
+    try {
+      const finishedPomodoros: number | undefined = await vscode.commands.executeCommand('pomodoro.getFinishedTasksCount', task.id)
+
+      if (typeof finishedPomodoros === "number") {
+        task.finishedPomodoros = finishedPomodoros
+      } else {
+        task.finishedPomodoros = 3
+      }
+    } catch (e) {
+      console.error(e)
+      task.finishedPomodoros = 5
+    }
+  5}
 
   private async update (): Promise<void> {
     // Send task data to the webview

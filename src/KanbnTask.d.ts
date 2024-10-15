@@ -6,6 +6,7 @@ declare interface KanbnTask {
   column: string
   workload?: number
   remainingWorkload?: number
+  finishedPomodoros?: number
   progress?: number
   metadata: {
     created?: string

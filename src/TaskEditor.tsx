@@ -124,6 +124,7 @@ interface EditorState {
   dueDate: string | null
   completedDate: string | null
   tags: Tag[]
+  finishedPomodoros: number
   progress: number
   customFields: CustomField[]
 }
@@ -299,6 +300,7 @@ const TaskEditor = (): JSX.Element => {
           name: event.data.task?.name ?? '',
           description: event.data.task?.description ?? '',
           column: event.data.columnName,
+          finishedPomodoros: event.data.task.finishedPomodoros,
           progress: event.data.task?.metadata?.progress ?? 0,
           relations: event.data.task?.relations ?? [],
           subTasks: event.data.task?.subTasks ?? [],
@@ -603,6 +605,19 @@ const TaskEditor = (): JSX.Element => {
                   {...register('completedDate')}
                   className="kanbn-task-editor-field-input"
                   type="date"
+                />
+              </label>
+            </div>
+            <div className="kanbn-task-editor-field kanbn-task-editor-field-pomodoros">
+              <label className="kanbn-task-editor-field-label">
+                <p>Pomodoros</p>
+                <input
+                  {...register('finishedPomodoros')}
+                  readOnly
+                  className="kanbn-task-editor-field-input"
+                  type="number"
+                  min="0"
+                  step="1"
                 />
               </label>
             </div>
