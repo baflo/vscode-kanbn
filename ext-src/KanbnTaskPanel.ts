@@ -319,20 +319,19 @@ export default class KanbnTaskPanel {
     }
   }
 
-  private async loadOtherTaskData(task: any) {
+  private async loadOtherTaskData(task?: any) {
+    if (typeof task?.id !== "string") return;
+
     try {
       const finishedPomodoros: number | undefined = await vscode.commands.executeCommand('pomodoro.getFinishedTasksCount', task.id)
 
       if (typeof finishedPomodoros === "number") {
         task.finishedPomodoros = finishedPomodoros
       } else {
-        task.finishedPomodoros = 3
       }
     } catch (e) {
-      console.error(e)
-      task.finishedPomodoros = 5
     }
-  5}
+  }
 
   private async update (): Promise<void> {
     // Send task data to the webview

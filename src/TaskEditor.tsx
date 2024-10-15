@@ -15,24 +15,24 @@ import 'katex/dist/katex.min.css'
 
 const Markdown = (props): JSX.Element => {
   const components = {
-    code ({ node, inline, className, children, ...props }) {
+    code({ node, inline, className, children, ...props }) {
       const match = /language-(\w+)/.exec(className ?? '')
       return inline !== false && (match != null)
         ? (
-      <SyntaxHighlighter
-        style={{}}
-        useInlineStyles={false}
-        language={match[1]}
-        PreTag="div"
-        {...props}>
-          {String(children).replace(/\n$/, '')}
-        </SyntaxHighlighter>
-          )
+          <SyntaxHighlighter
+            style={{}}
+            useInlineStyles={false}
+            language={match[1]}
+            PreTag="div"
+            {...props}>
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
+        )
         : (
-      <code className={className} {...props}>
-        {children}
-      </code>
-          )
+          <code className={className} {...props}>
+            {children}
+          </code>
+        )
     }
   }
 
@@ -61,27 +61,27 @@ const EditableMarkdown = ({ formMethods, inputName, multiline, markdownClassname
     <div>
       {isFocused
         ? (
-            multiline
-              ? <textarea
-          {...register(inputName)}
-          onBlur={handleBlur}
-          autoFocus={true}
-          id={inputId}
-          className={inputClassnames}
-        />
-              : <input
-          {...register(inputName)}
-          onBlur={handleBlur}
-          autoFocus={true}
-          id={inputId}
-          className={inputClassnames}
-        />
-          )
+          multiline
+            ? <textarea
+              {...register(inputName)}
+              onBlur={handleBlur}
+              autoFocus={true}
+              id={inputId}
+              className={inputClassnames}
+            />
+            : <input
+              {...register(inputName)}
+              onBlur={handleBlur}
+              autoFocus={true}
+              id={inputId}
+              className={inputClassnames}
+            />
+        )
         : (
-        <div onClick={() => handleFocus()} className={markdownClassnames}>
-          <Markdown>{markdown as string}</Markdown>
-        </div>
-          )}
+          <div onClick={() => handleFocus()} className={markdownClassnames}>
+            <Markdown>{markdown as string}</Markdown>
+          </div>
+        )}
     </div>
   )
 }
@@ -284,7 +284,7 @@ const TaskEditor = (): JSX.Element => {
     setState(newState)
     if (shouldUpdateEditorState) {
       setShouldUpdateEditorState(false)
-      function formatDateString (dateString: string | null): string | null {
+      function formatDateString(dateString: string | null): string | null {
         if (dateString === null) {
           return null
         }
@@ -300,7 +300,7 @@ const TaskEditor = (): JSX.Element => {
           name: event.data.task?.name ?? '',
           description: event.data.task?.description ?? '',
           column: event.data.columnName,
-          finishedPomodoros: event.data.task.finishedPomodoros,
+          finishedPomodoros: event.data.task?.finishedPomodoros,
           progress: event.data.task?.metadata?.progress ?? 0,
           relations: event.data.task?.relations ?? [],
           subTasks: event.data.task?.subTasks ?? [],
@@ -653,7 +653,7 @@ const TaskEditor = (): JSX.Element => {
                             type="checkbox"
                           /><p>{customField.name}</p>
                         </>
-                        )
+                      )
                       : (
                         <>
                           <p>{customField.name}</p>
@@ -663,7 +663,7 @@ const TaskEditor = (): JSX.Element => {
                             type={customField.type}
                           />
                         </>
-                        )}
+                      )}
                   </label>
                 </div>
               ))
