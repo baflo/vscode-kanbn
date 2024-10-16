@@ -34,8 +34,7 @@ export default class KanbnBurndownPanel {
       // Restrict the webview to only loading content from allowed paths
       localResourceRoots: [
         vscode.Uri.file(path.join(this._extensionPath, 'build')),
-        vscode.Uri.file(path.join(this._kanbnFolderName, '.kanbn')),
-        vscode.Uri.file(path.join(this._extensionPath, 'node_modules', 'vscode-codicons', 'dist'))
+        vscode.Uri.file(path.join(this._kanbnFolderName, '.kanbn'))
       ]
     });
     (this._panel as any).iconPath = {
@@ -148,10 +147,8 @@ export default class KanbnBurndownPanel {
   }
 
   private _getHtmlForWebview (): string {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const manifest = require(path.join(this._extensionPath, 'build', 'asset-manifest.json'))
-    const mainScript = manifest.files['main.js']
-    const mainStyle = manifest.files['main.css']
+    const mainScript = path.join('static', 'index.js')
+    const mainStyle = path.join('static', 'index.css')
     if (this._panel === null) {
       throw new Error('panel is undefined')
     }
@@ -162,9 +159,6 @@ export default class KanbnBurndownPanel {
 
     const customStyleUri = webview.asWebviewUri(vscode.Uri.file(
       path.join(this._kanbnFolderName, '.kanbn', 'board.css')
-    ))
-    const codiconsUri = webview.asWebviewUri(vscode.Uri.file(
-      path.join(this._extensionPath, 'node_modules', 'vscode-codicons', 'dist', 'codicon.css')
     ))
 
     // Use a nonce to whitelist which scripts can be run
@@ -179,7 +173,6 @@ export default class KanbnBurndownPanel {
 <title>Kanbn Board</title>
 <link rel="stylesheet" type="text/css" href="${styleUri.toString()}">
 <link rel="stylesheet" type="text/css" href="${customStyleUri.toString()}">
-<link rel="stylesheet" type="text/css" href="${codiconsUri.toString()}">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src vscode-webview-resource: https:; script-src 'nonce-${nonce}'; font-src vscode-webview-resource:; style-src vscode-webview-resource: 'unsafe-inline' http: https: data:;">
 <base href="${webview.asWebviewUri(vscode.Uri.file(path.join(this._extensionPath, 'build'))).toString()}/">
 </head>

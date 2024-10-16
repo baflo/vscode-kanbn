@@ -5,6 +5,7 @@ import TaskItem from './TaskItem'
 import { paramCase } from '@basementuniverse/kanbn/src/utility'
 import vscode from './vscode'
 import formatDate from 'dateformat'
+import '@vscode/codicons/dist/codicon.css'
 
 const zip = (a: any[], b: any[]): Array<[any, any]> => a.map((v: any, i: number): [any, any] => [v, b[i]])
 

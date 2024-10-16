@@ -3,6 +3,7 @@
 build/**/*.js.map
 ext-src/**
 public/**
+node_modules
 scripts/**
 src/**
 .editorconfig

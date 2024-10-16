@@ -107,7 +107,7 @@ export default class KanbnTaskPanel {
     this._kanbnFolderName = kanbnFolderName
     this._taskId = taskId
     this._defaultColumn = defaultColumn
-    
+
     // Create and show a new webview panel
     this._panel = this.createWebviewPanel(column)
     this.updateFileWatcher()
@@ -224,7 +224,7 @@ export default class KanbnTaskPanel {
     )
   }
 
-  private createWebviewPanel(column: vscode.ViewColumn): vscode.WebviewPanel {
+  private createWebviewPanel (column: vscode.ViewColumn): vscode.WebviewPanel {
     return vscode.window.createWebviewPanel(KanbnTaskPanel.viewType, 'New task', column, {
       // Enable javascript in the webview
       enableScripts: true,
@@ -232,8 +232,7 @@ export default class KanbnTaskPanel {
       // Restrict the webview to only loading content from allowed paths
       localResourceRoots: [
         vscode.Uri.file(path.join(this._extensionPath, 'build')),
-        vscode.Uri.file(path.join(this._kanbnFolderName, '.kanbn')),
-        vscode.Uri.file(path.join(this._extensionPath, 'node_modules', 'vscode-codicons', 'dist'))
+        vscode.Uri.file(path.join(this._kanbnFolderName, '.kanbn'))
       ]
     })
   }
@@ -248,9 +247,8 @@ export default class KanbnTaskPanel {
     }
   }
 
-
   private getTaskFilename (): string | undefined {
-    if (typeof this._taskId !== 'string') return 
+    if (typeof this._taskId !== 'string') return
 
     const folderPath = path.join(this._kanbnFolderName, '.kanbn')
     const taskFilename = this._taskId.replace(/(?<!\.md)$/, '.md')
@@ -259,12 +257,12 @@ export default class KanbnTaskPanel {
     return taskPath
   }
 
-  private updateFileWatcher() {
+  private updateFileWatcher (): void {
     this.fileWatcher?.dispose()
-    if (!this._panel) return
+    if (this._panel === undefined) return
 
     const taskPath = this.getTaskFilename()
-    if (!taskPath) return;
+    if (taskPath === undefined) return
 
     this.fileWatcher = vscode.workspace.createFileSystemWatcher(taskPath)
     this._panel.onDidDispose(() => this.fileWatcher?.dispose())
@@ -277,7 +275,7 @@ export default class KanbnTaskPanel {
   public async showTaskFilePanel (): Promise<void> {
     const taskPath = this.getTaskFilename()
 
-    if (!taskPath) return
+    if (taskPath === undefined) return
 
     const taskfileEditor = vscode.workspace.getConfiguration('kanbn').get<boolean>('taskfileEditor')
     try {
@@ -349,15 +347,14 @@ export default class KanbnTaskPanel {
     }
   }
 
-  private async loadOtherTaskData(task?: any) {
-    if (typeof task?.id !== "string") return;
+  private async loadOtherTaskData (task?: any): void {
+    if (typeof task?.id !== 'string') return
 
     try {
       const finishedPomodoros: number | undefined = await vscode.commands.executeCommand('pomodoro.getFinishedTasksCount', task.id)
 
-      if (typeof finishedPomodoros === "number") {
+      if (typeof finishedPomodoros === 'number') {
         task.finishedPomodoros = finishedPomodoros
-      } else {
       }
     } catch (e) {
     }
@@ -369,10 +366,8 @@ export default class KanbnTaskPanel {
   }
 
   private _getHtmlForWebview (): string {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const manifest = require(path.join(this._extensionPath, 'build', 'asset-manifest.json'))
-    const mainScript = manifest.files['main.js']
-    const mainStyle = manifest.files['main.css']
+    const mainScript = path.join('static', 'index.js')
+    const mainStyle = path.join('static', 'index.css')
     if (this._panel === null) {
       throw new Error('Panel is not defined')
     }
@@ -383,9 +378,6 @@ export default class KanbnTaskPanel {
 
     const customStyleUri = webview.asWebviewUri(vscode.Uri.file(
       path.join(this._kanbnFolderName, '.kanbn', 'board.css')
-    ))
-    const codiconsUri = webview.asWebviewUri(vscode.Uri.file(
-      path.join(this._extensionPath, 'node_modules', 'vscode-codicons', 'dist', 'codicon.css')
     ))
 
     // Use a nonce to whitelist which scripts can be run
@@ -400,7 +392,6 @@ export default class KanbnTaskPanel {
 <title>Kanbn Board</title>
 <link rel="stylesheet" type="text/css" href="${styleUri.toString()}">
 <link rel="stylesheet" type="text/css" href="${customStyleUri.toString()}">
-<link rel="stylesheet" type="text/css" href="${codiconsUri.toString()}">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src vscode-webview-resource: https:; script-src 'nonce-${nonce}'; font-src vscode-webview-resource:; style-src vscode-webview-resource: 'unsafe-inline' http: https: data:;">
 <base href="${webview.asWebviewUri(vscode.Uri.file(path.join(this._extensionPath, 'build'))).toString()}/">
 </head>

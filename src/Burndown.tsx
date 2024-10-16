@@ -3,6 +3,7 @@ import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tool
 import vscode from './vscode'
 import formatDate from 'dateformat'
 import { debounce } from 'throttle-debounce'
+import '@vscode/codicons/dist/codicon.css'
 
 const Burndown = (): JSX.Element => {
   const [state, setState] = useState(vscode.getState() ?? {

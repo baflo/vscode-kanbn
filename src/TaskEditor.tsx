@@ -12,6 +12,7 @@ import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import 'katex/dist/katex.min.css'
+import '@vscode/codicons/dist/codicon.css'
 
 const Markdown = (props): JSX.Element => {
   const components = {
