@@ -15,7 +15,7 @@ import 'katex/dist/katex.min.css'
 
 const Markdown = (props): JSX.Element => {
   const components = {
-    code({ node, inline, className, children, ...props }) {
+    code ({ node, inline, className, children, ...props }) {
       const match = /language-(\w+)/.exec(className ?? '')
       return inline !== false && (match != null)
         ? (
@@ -27,12 +27,12 @@ const Markdown = (props): JSX.Element => {
             {...props}>
             {String(children).replace(/\n$/, '')}
           </SyntaxHighlighter>
-        )
+          )
         : (
           <code className={className} {...props}>
             {children}
           </code>
-        )
+          )
     }
   }
 
@@ -61,29 +61,41 @@ const EditableMarkdown = ({ formMethods, inputName, multiline, markdownClassname
     <div>
       {isFocused
         ? (
-          multiline
-            ? <textarea
+            multiline
+              ? <textarea
               {...register(inputName)}
               onBlur={handleBlur}
               autoFocus={true}
               id={inputId}
               className={inputClassnames}
             />
-            : <input
+              : <input
               {...register(inputName)}
               onBlur={handleBlur}
               autoFocus={true}
               id={inputId}
               className={inputClassnames}
             />
-        )
+          )
         : (
           <div onClick={() => handleFocus()} className={markdownClassnames}>
             <Markdown>{markdown as string}</Markdown>
           </div>
-        )}
+          )}
     </div>
   )
+}
+
+function formatDateString (dateString: string | null): string | null {
+  if (dateString === null) {
+    return null
+  }
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+
+  return `${year}-${month}-${day}`
 }
 
 interface CustomField {
@@ -282,38 +294,26 @@ const TaskEditor = (): JSX.Element => {
       customFields: event.data.customFields ?? []
     }
     setState(newState)
-    if (shouldUpdateEditorState) {
-      setShouldUpdateEditorState(false)
-      function formatDateString(dateString: string | null): string | null {
-        if (dateString === null) {
-          return null
-        }
-        const date = new Date(dateString)
-        const year = date.getFullYear()
-        const month = (date.getMonth() + 1).toString().padStart(2, '0')
-        const day = date.getDate().toString().padStart(2, '0')
 
-        return `${year}-${month}-${day}`
+    setShouldUpdateEditorState(false)
+    reset(
+      {
+        name: event.data.task?.name ?? '',
+        description: event.data.task?.description ?? '',
+        column: event.data.columnName,
+        finishedPomodoros: event.data.task?.finishedPomodoros,
+        progress: event.data.task?.metadata?.progress ?? 0,
+        relations: event.data.task?.relations ?? [],
+        subTasks: event.data.task?.subTasks ?? [],
+        comments: event.data.task?.comments ?? [],
+        customFields: event.data.customFields?.map((customField: { name: string, type: string }) => ({ ...customField, value: (customField.type === 'date' ? formatDateString(event.data.task?.metadata[customField.name]) : event.data.task?.metadata[customField.name]) })) ?? [],
+        tags: event.data.task?.metadata?.tags.map((tag: string): Tag => ({ tag })) ?? [],
+        dueDate: formatDateString(event.data.task?.metadata?.due),
+        startedDate: formatDateString(event.data.task?.metadata?.started),
+        completedDate: formatDateString(event.data.task?.metadata?.completed),
+        assignedTo: event.data.task?.metadata?.assigned ?? ''
       }
-      reset(
-        {
-          name: event.data.task?.name ?? '',
-          description: event.data.task?.description ?? '',
-          column: event.data.columnName,
-          finishedPomodoros: event.data.task?.finishedPomodoros,
-          progress: event.data.task?.metadata?.progress ?? 0,
-          relations: event.data.task?.relations ?? [],
-          subTasks: event.data.task?.subTasks ?? [],
-          comments: event.data.task?.comments ?? [],
-          customFields: event.data.customFields?.map((customField: { name: string, type: string }) => ({ ...customField, value: (customField.type === 'date' ? formatDateString(event.data.task?.metadata[customField.name]) : event.data.task?.metadata[customField.name]) })) ?? [],
-          tags: event.data.task?.metadata?.tags.map((tag: string): Tag => ({ tag })) ?? [],
-          dueDate: formatDateString(event.data.task?.metadata?.due),
-          startedDate: formatDateString(event.data.task?.metadata?.started),
-          completedDate: formatDateString(event.data.task?.metadata?.completed),
-          assignedTo: event.data.task?.metadata?.assigned ?? ''
-        }
-      )
-    }
+    )
   }, [])
 
   useEffect(() => {
@@ -653,7 +653,7 @@ const TaskEditor = (): JSX.Element => {
                             type="checkbox"
                           /><p>{customField.name}</p>
                         </>
-                      )
+                        )
                       : (
                         <>
                           <p>{customField.name}</p>
@@ -663,7 +663,7 @@ const TaskEditor = (): JSX.Element => {
                             type={customField.type}
                           />
                         </>
-                      )}
+                        )}
                   </label>
                 </div>
               ))

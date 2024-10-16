@@ -80,6 +80,7 @@ export default class KanbnTaskPanel {
   private _taskId: string | symbol
   private readonly _defaultColumn: string | null
   private readonly _disposables: vscode.Disposable[] = []
+  private fileWatcher: vscode.FileSystemWatcher | undefined
 
   public async show (): Promise<void> {
     void this.update()
@@ -106,19 +107,10 @@ export default class KanbnTaskPanel {
     this._kanbnFolderName = kanbnFolderName
     this._taskId = taskId
     this._defaultColumn = defaultColumn
-
+    
     // Create and show a new webview panel
-    this._panel = vscode.window.createWebviewPanel(KanbnTaskPanel.viewType, 'New task', column, {
-      // Enable javascript in the webview
-      enableScripts: true,
-
-      // Restrict the webview to only loading content from allowed paths
-      localResourceRoots: [
-        vscode.Uri.file(path.join(this._extensionPath, 'build')),
-        vscode.Uri.file(path.join(this._kanbnFolderName, '.kanbn')),
-        vscode.Uri.file(path.join(this._extensionPath, 'node_modules', 'vscode-codicons', 'dist'))
-      ]
-    })
+    this._panel = this.createWebviewPanel(column)
+    this.updateFileWatcher()
 
     if (this._taskId !== null) {
       this._panel.onDidDispose((e) => { if (this._taskId !== null) taskCache.delete(this._taskId) })
@@ -178,18 +170,18 @@ export default class KanbnTaskPanel {
                 transformTaskData(message.taskData, message.customFields),
                 message.taskData.column
               )
-              if (this._taskId !== message.taskData.id) {
-                taskCache.set(message.taskData.id, this)
-                taskCache.delete(this._taskId ?? '')
-                this._taskId = message.taskData.id
-              }
 
               if (vscode.workspace.getConfiguration('kanbn').get<boolean>('showTaskNotifications') ?? true) {
                 // TODO: remove the explicit String cast once typescript bindings for kanbn are updated
                 void vscode.window.showInformationMessage(`Updated task '${String(message.taskData.name)}'.`)
               }
             }
-            this._taskId = message.taskData.id as string
+            if (this._taskId !== message.taskData.id) {
+              taskCache.set(message.taskData.id, this)
+              taskCache.delete(this._taskId ?? '')
+              this._taskId = message.taskData.id
+              this.updateFileWatcher()
+            }
             this._panel.title = message.taskData.name
             return
 
@@ -232,6 +224,20 @@ export default class KanbnTaskPanel {
     )
   }
 
+  private createWebviewPanel(column: vscode.ViewColumn): vscode.WebviewPanel {
+    return vscode.window.createWebviewPanel(KanbnTaskPanel.viewType, 'New task', column, {
+      // Enable javascript in the webview
+      enableScripts: true,
+
+      // Restrict the webview to only loading content from allowed paths
+      localResourceRoots: [
+        vscode.Uri.file(path.join(this._extensionPath, 'build')),
+        vscode.Uri.file(path.join(this._kanbnFolderName, '.kanbn')),
+        vscode.Uri.file(path.join(this._extensionPath, 'node_modules', 'vscode-codicons', 'dist'))
+      ]
+    })
+  }
+
   public dispose (): void {
     this._panel.dispose()
     while (this._disposables.length > 0) {
@@ -242,19 +248,43 @@ export default class KanbnTaskPanel {
     }
   }
 
-  public async showTaskFilePanel (): Promise<void> {
-    if (typeof this._taskId === 'string') {
-      const folderPath = path.join(this._kanbnFolderName, '.kanbn')
-      const taskFilename = this._taskId.replace(/(?<!\.md)$/, '.md')
-      const taskPath = path.join(folderPath, 'tasks', taskFilename)
 
-      const taskfileEditor = vscode.workspace.getConfiguration('kanbn').get<boolean>('taskfileEditor')
-      try {
-        await vscode.commands.executeCommand('vscode.openWith', vscode.Uri.file(taskPath), taskfileEditor)
-      } catch {
-        const textDoc = await vscode.workspace.openTextDocument(taskPath)
-        await vscode.window.showTextDocument(textDoc)
-      }
+  private getTaskFilename (): string | undefined {
+    if (typeof this._taskId !== 'string') return 
+
+    const folderPath = path.join(this._kanbnFolderName, '.kanbn')
+    const taskFilename = this._taskId.replace(/(?<!\.md)$/, '.md')
+    const taskPath = path.join(folderPath, 'tasks', taskFilename)
+
+    return taskPath
+  }
+
+  private updateFileWatcher() {
+    this.fileWatcher?.dispose()
+    if (!this._panel) return
+
+    const taskPath = this.getTaskFilename()
+    if (!taskPath) return;
+
+    this.fileWatcher = vscode.workspace.createFileSystemWatcher(taskPath)
+    this._panel.onDidDispose(() => this.fileWatcher?.dispose())
+
+    this.fileWatcher.onDidChange(() => {
+      void this.update()
+    })
+  }
+
+  public async showTaskFilePanel (): Promise<void> {
+    const taskPath = this.getTaskFilename()
+
+    if (!taskPath) return
+
+    const taskfileEditor = vscode.workspace.getConfiguration('kanbn').get<boolean>('taskfileEditor')
+    try {
+      await vscode.commands.executeCommand('vscode.openWith', vscode.Uri.file(taskPath), taskfileEditor)
+    } catch {
+      const textDoc = await vscode.workspace.openTextDocument(taskPath)
+      await vscode.window.showTextDocument(textDoc)
     }
   }
 
