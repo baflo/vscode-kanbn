@@ -155,7 +155,7 @@
     }
   },
   "dependencies": {
-    "@basementuniverse/kanbn": "git@github.com:samgiz/kanbn.git#1536b686f8b530c5eca1cd997347f250d767951c",
+    "@basementuniverse/kanbn": "git@github.com:baflo/kanbn.git#dev",
     "dateformat": "^5.0.3",
     "param-case": "^3.0.4",
     "path": "^0.12.7",
@@ -163,7 +163,7 @@
     "react-beautiful-dnd": "13.1.1",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.43.3",
-    "react-markdown": "^8.0.3",
+    "react-markdown": "^9.0.1",
     "react-syntax-highlighter": "^15.5.0",
     "react-textarea-autosize": "^8.4.0",
     "recharts": "^2.2.0",
@@ -174,9 +174,9 @@
     "@vscode/codicons": "0.0.36"
   },
   "scripts": {
-    "vscode:prepublish": "node build-view.js && node build-ext.js",
+    "vscode:prepublish": "npm run build",
     "start": "react-scripts start",
-    "build": "node ./scripts/build-non-split.js && tsc -p tsconfig.extension.json",
+    "build": "node build-view.js && node build-ext.js",
     "package": "npm run build && vsce package",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"

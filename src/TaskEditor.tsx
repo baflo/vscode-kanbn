@@ -5,7 +5,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import formatDate from 'dateformat'
 import vscode from './vscode'
-import { paramCase } from '@basementuniverse/kanbn/src/utility'
+import util from '@basementuniverse/kanbn/utility'
 import ReactMarkdown from 'react-markdown'
 // import TextareaAutosize from 'react-textarea-autosize'
 import remarkMath from 'remark-math'
@@ -13,6 +13,8 @@ import rehypeKatex from 'rehype-katex'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import 'katex/dist/katex.min.css'
 import '@vscode/codicons/dist/codicon.css'
+
+const { paramCase } = util
 
 const Markdown = (props): JSX.Element => {
   const components = {

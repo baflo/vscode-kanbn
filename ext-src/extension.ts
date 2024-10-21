@@ -3,17 +3,17 @@ import * as path from 'path'
 import KanbnStatusBarItem from './KanbnStatusBarItem'
 import KanbnBoardPanel from './KanbnBoardPanel'
 import KanbnBurndownPanel from './KanbnBurndownPanel'
-import { Kanbn } from '@basementuniverse/kanbn/src/main'
+import { Kanbn } from '@basementuniverse/kanbn'
 import * as fs from 'fs'
 
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
+export async function activate (context: vscode.ExtensionContext): Promise<void> {
   const kanbnStatusBarItem: KanbnStatusBarItem = new KanbnStatusBarItem(context, null)
   const boardCache = new Map<string, KanbnTuple>()
   class KanbnTuple {
     kanbn: Kanbn
     kanbnBoardPanel: KanbnBoardPanel
     kanbnBurnDownPanel: KanbnBurndownPanel
-    constructor(boardLocation: string) {
+    constructor (boardLocation: string) {
       if (vscode.workspace.workspaceFolders == null) {
         throw new Error('A workspace folder should be open when creating Kanbn board panels')
       }
@@ -32,7 +32,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
   }
 
-  async function chooseBoard(reuseActiveBoard = true): Promise<string | undefined> {
+  async function chooseBoard (reuseActiveBoard = true): Promise<string | undefined> {
     if (boardCache.size === 0) {
       void vscode.window.showErrorMessage(
         'No boards detected. Open a workspace with Kanbn boards or add Additional Boards to the global user configuration'
@@ -73,7 +73,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return boardId
   }
 
-  function populateBoardCache(): void {
+  function populateBoardCache (): void {
     const boardLocations = new Set<string>()
 
     // Get globally accessible board locations.

@@ -1,8 +1,10 @@
 import React from 'react'
 import { Draggable } from 'react-beautiful-dnd'
 import formatDate from 'dateformat'
-import { paramCase } from '@basementuniverse/kanbn/src/utility'
+import util from '@basementuniverse/kanbn/utility'
 import vscode from './vscode'
+
+const { paramCase } = util
 
 const TaskItem = ({ task, columnName, customFields, position, dateFormat }: {
   task: KanbnTask

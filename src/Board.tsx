@@ -2,7 +2,7 @@
 import { DragDropContext, Droppable } from 'react-beautiful-dnd'
 import React, { useState, useCallback, useEffect } from 'react'
 import TaskItem from './TaskItem'
-import { paramCase } from '@basementuniverse/kanbn/src/utility'
+import util from '@basementuniverse/kanbn/utility'
 import vscode from './vscode'
 import formatDate from 'dateformat'
 import '@vscode/codicons/dist/codicon.css'
@@ -343,7 +343,7 @@ function Board (): JSX.Element {
               <div
                 className={[
                   'kanbn-column',
-                  `kanbn-column-${paramCase(columnName)}`
+                  `kanbn-column-${util.paramCase(columnName)}`
                 ].join(' ')}
                 key={columnName}
               >
