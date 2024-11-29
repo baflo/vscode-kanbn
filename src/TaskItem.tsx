@@ -75,7 +75,7 @@ const TaskItem = ({ task, columnName, customFields, position, dateFormat, onTask
               <div className="kanbn-task-data kanbn-task-data-tags">
                 {task.metadata.tags.map(tag => {
                   return (
-                    <span key={tag} onClick={() => onTaskFilter(`tag:${tag}`)} className={[
+                    <span key={tag} onClick={() => onTaskFilter(`"tag:${tag}"`)} className={[
                       'kanbn-task-tag',
                       // TODO: remove the explicit String cast once typescript bindings for kanbn are updated
                       `kanbn-task-tag-${String(paramCase(tag))}`

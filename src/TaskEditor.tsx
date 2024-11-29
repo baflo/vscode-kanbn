@@ -154,6 +154,7 @@ interface TaskState {
   taskCreated: boolean
   tasks: Record<string, Task>
   columnNames: string[]
+  suggestedTags?: { tags?: string[] }
   createdDate: Date | null
   updatedDate: Date | null
   customFields: CustomField[]
@@ -290,6 +291,7 @@ const TaskEditor = (): JSX.Element => {
       taskCreated: event.data.task !== null,
       tasks,
       columnNames: Object.keys(event.data.index.columns),
+      suggestedTags: event.data.index?.options?.suggestedTags ?? [],
       // TODO: might be able to get this directly from a configuration
       dateFormat: event.data.dateFormat,
       createdDate: event.data.task?.metadata?.created ?? null,
@@ -684,7 +686,11 @@ const TaskEditor = (): JSX.Element => {
                         {...register(`tags.${index}.tag`, { required: true })}
                         className="kanbn-task-editor-field-input"
                         placeholder="Tag name"
+                        list="suggestedTags"
                       />
+                      <datalist id="suggestedTags">
+                        {state.suggestedTags?.tags?.map(c => <option key={c} value={c}>{c}</option>)}
+                      </datalist>
                       <div
                         className={[
                           'kanbn-task-editor-tag-highlight',
