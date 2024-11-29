@@ -288,7 +288,7 @@ export async function activate (context: vscode.ExtensionContext): Promise<void>
       const tasksByColumns = await Promise.all([...startedColumns, ...otherColumns, ...completedColumns]
         .map(async columnName => ({
           columnName,
-          tasks: await Promise.all(index.columns[columnName].map(async taskId => await kanbnTuple.kanbn.getTask(taskId)))
+          tasks: await Promise.all(index.columns[columnName].map(taskId => kanbnTuple.kanbn.getTask(taskId)))
         })))
 
       // Create QuickPickItems for each task mangled with separators for each column

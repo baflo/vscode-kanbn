@@ -6,12 +6,13 @@ import vscode from './vscode'
 
 const { paramCase } = util
 
-const TaskItem = ({ task, columnName, customFields, position, dateFormat }: {
+const TaskItem = ({ task, columnName, customFields, position, dateFormat, onTaskFilter }: {
   task: KanbnTask
   columnName: string
   customFields: Array<{ name: string, type: 'boolean' | 'date' | 'number' | 'string' }>
   position: number
   dateFormat: string
+  onTaskFilter: (string) => void
 }): JSX.Element => {
   const createdDate = 'created' in task.metadata ? formatDate(task.metadata.created, dateFormat) : null
   const updatedDate = 'updated' in task.metadata ? formatDate(task.metadata.updated, dateFormat) : null
@@ -74,7 +75,7 @@ const TaskItem = ({ task, columnName, customFields, position, dateFormat }: {
               <div className="kanbn-task-data kanbn-task-data-tags">
                 {task.metadata.tags.map(tag => {
                   return (
-                    <span key={tag} className={[
+                    <span key={tag} onClick={() => onTaskFilter(`tag:${tag}`)} className={[
                       'kanbn-task-tag',
                       // TODO: remove the explicit String cast once typescript bindings for kanbn are updated
                       `kanbn-task-tag-${String(paramCase(tag))}`
@@ -182,12 +183,18 @@ const TaskItem = ({ task, columnName, customFields, position, dateFormat }: {
               task.relations.map(relation => (
                 <div key={relation.task} className={[
                   'kanbn-task-data kanbn-task-data-relation',
-                  relation.type !== '' ? `kanbn-task-data-relation-${relation.type}` : null
+                  relation.type !== '' ? `kanbn-task-data-relation-${btoa(relation.type)}` : null
                 ].join(' ')}>
                   <i className="codicon codicon-link"></i>
-                  <span className="kanbn-task-data-label">
-                    {relation.type}
-                  </span> {relation.task}
+                  <span className="kanbn-task-data-label" onClick={() => onTaskFilter(`relation:"${relation.type} ${relation.task}"`)}>
+                   {relation.type}
+                  </span> <span onClick={() => {
+                    vscode.postMessage({
+                      command: 'kanbn.task',
+                      taskId: relation.task
+                    })
+                  }}
+                  >{relation.task}</span>
                 </div>
               ))
             }

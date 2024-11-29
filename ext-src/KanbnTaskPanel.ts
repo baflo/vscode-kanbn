@@ -347,7 +347,7 @@ export default class KanbnTaskPanel {
     }
   }
 
-  private async loadOtherTaskData (task?: any): void {
+  private async loadOtherTaskData (task?: any): Promise<void> {
     if (typeof task?.id !== 'string') return
 
     try {

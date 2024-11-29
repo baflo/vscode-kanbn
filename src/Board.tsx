@@ -89,8 +89,8 @@ const filterTask = (
     customField
   ]))
   const customFieldNames = Object.keys(customFieldMap)
-  taskFilter.split(' ').forEach(f => {
-    const parts = f.split(':').map(p => p.toLowerCase())
+  taskFilter.trim().split(/\s+(?=(?:[^"]*"[^"]*")*[^"]*$)/).forEach(f => {
+    const parts = f.replace(/^"(.*)"$/, '$1').split(':').map(p => p.toLowerCase())
 
     // This filter section doesn't contain a property name
     if (parts.length === 1) {
@@ -166,7 +166,7 @@ const filterTask = (
       }
 
       // Check the search term against the value
-      if (!propertyValue.toLowerCase().includes(parts[1])) {
+      if (!propertyValue.toLowerCase().includes(parts[1].replace(/^"(.*)"$/, '$1'))) {
         result = false
       }
     }
@@ -242,16 +242,26 @@ function Board (): JSX.Element {
     setState(newState)
   }
 
+  const getFilterInput = (): HTMLInputElement => {
+    return document.querySelector('.kanbn-filter-input') as HTMLInputElement
+  }
+
   // Called when the clear filter button is clicked
   const clearFilters = (e: React.UIEvent<HTMLElement>): void => {
-    (document.querySelector('.kanbn-filter-input') as HTMLInputElement).value = ''
+    getFilterInput().value = ''
     filterTasks(e)
   }
 
   // Called when the filter form is submitted
-  const filterTasks = (e: React.UIEvent<HTMLElement>): void => {
-    e.preventDefault()
-    setTaskFilter((document.querySelector('.kanbn-filter-input') as HTMLInputElement).value)
+  const filterTasks = (e?: React.UIEvent<HTMLElement>): void => {
+    e?.preventDefault()
+    setTaskFilter(getFilterInput().value)
+  }
+
+  const addToFilterInput = (str: string): void => {
+    const currentValue = getFilterInput().value
+    getFilterInput().value = [currentValue, str].join(' ').trim()
+    filterTasks()
   }
 
   const taskFilter = state.taskFilter
@@ -418,6 +428,7 @@ function Board (): JSX.Element {
                               customFields={state.customFields}
                               position={position}
                               dateFormat={state.dateFormat}
+                              onTaskFilter={addToFilterInput}
                             />)}
                           {provided.placeholder}
                         </div>
