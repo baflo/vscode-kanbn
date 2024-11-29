@@ -108,7 +108,10 @@ const TaskItem = ({ task, columnName, customFields, position, dateFormat, onTask
                           : (
                             <>
                               <i className="codicon codicon-json"></i>
-                              <span title={customField.name}>
+                              <span title={customField.name}
+                              onClick={() => onTaskFilter(`"${customField.name}:${customField.type === 'date'
+                                ? formatDate(task.metadata[customField.name], dateFormat)
+                                : task.metadata[customField.name]}"`)}>
                                 {customField.type === 'date'
                                   ? formatDate(task.metadata[customField.name], dateFormat)
                                   : task.metadata[customField.name]}
