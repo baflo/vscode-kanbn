@@ -6,6 +6,7 @@ const settings = {
   entryPoints: ['src/index.tsx'],
   outdir: 'build/static/',
   platform: 'browser',
+  sourcemap: true,
   bundle: true,
   loader: {
     '.html': 'file',

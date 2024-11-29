@@ -7,13 +7,14 @@ const settings = {
   outfile: 'build/ext-src/extension.js',
   platform: 'node',
   bundle: true,
+  sourcemap: true,
   external: [
     'vscode'
   ],
   plugins: [
     esbuildPluginTsc({
       force: true,
-      tsconfigPath: 'tsconfig.extension.json'
+      tsconfigPath: 'tsconfig.extension.json',
     })
   ]
 }

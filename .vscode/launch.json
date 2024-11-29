@@ -13,6 +13,7 @@
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--disable-extensions"
 			],
+			"sourceMaps": true,
 			"outFiles": [
 				"${workspaceFolder}/build/ext-src/**/*.js"
 			],
