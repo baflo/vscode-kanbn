@@ -150,6 +150,11 @@
           "type": "string",
           "default": "vscode.markdown.preview.editor",
           "description": "Set the editor to be used when opening task source files."
+        },
+        "kanbn.openBoardTasksToSide": {
+          "type": "boolean",
+          "default": false,
+          "description": "Opens tasks clicked on the board to an editor to the right."
         }
       }
     }

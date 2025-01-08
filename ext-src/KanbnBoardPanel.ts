@@ -36,6 +36,11 @@ export default class KanbnBoardPanel {
     if (this._panel == null) {
       await this.setUpPanel()
     }
+
+    this.reveal()
+  }
+
+  private reveal (): void {
     this._panel?.reveal(this.column)
   }
 
@@ -49,10 +54,10 @@ export default class KanbnBoardPanel {
     }
   }
 
-  public showTaskPanel (taskId: string | null, column: string | null = null): void {
+  public showTaskPanel (taskId: string | null, column: string | null = null, openToSide: boolean = false): void {
     let panel: KanbnTaskPanel
     if (taskId == null || !this.openedTaskPanels.has(taskId)) {
-      panel = new KanbnTaskPanel(this._extensionPath, this._workspacePath, this._kanbn, this._kanbnFolderName, taskId ?? Symbol('prelim-task-id'), column, this.openedTaskPanels)
+      panel = new KanbnTaskPanel(this._extensionPath, this._workspacePath, this._kanbn, this._kanbnFolderName, taskId ?? Symbol('prelim-task-id'), column, openToSide, this.openedTaskPanels)
       this.openedTaskPanels.set(panel.getTaskId(), panel)
     } else {
       panel = this.openedTaskPanels.get(taskId) as KanbnTaskPanel
@@ -133,6 +138,8 @@ export default class KanbnBoardPanel {
     // Handle messages from the webview
     this._panel.webview.onDidReceiveMessage(
       async (message) => {
+        this.reveal()
+
         switch (message.command) {
           // Display error message
           case 'error':
@@ -146,7 +153,7 @@ export default class KanbnBoardPanel {
 
           // Open an already existing task in the editor
           case 'kanbn.task':
-            this.showTaskPanel(message.taskId, message.columnName)
+            this.showTaskPanel(message.taskId, message.columnName, this.isOpenTaskToSide())
             return
 
           // Move a task
@@ -164,7 +171,7 @@ export default class KanbnBoardPanel {
 
           // Open a webview for a new task (with no ID)
           case 'kanbn.addTask':
-            this.showTaskPanel(null, message.columnName)
+            this.showTaskPanel(null, message.columnName, this.isOpenTaskToSide())
             return
 
           // Sort a column
@@ -279,6 +286,10 @@ export default class KanbnBoardPanel {
     this.column = vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One
     this._kanbnFolderName = kanbnFolderName
     this._kanbnBurndownPanel = kanbnBurndownPanel
+  }
+
+  private isOpenTaskToSide (): boolean | undefined {
+    return vscode.workspace.getConfiguration('kanbn').get<boolean>('openBoardTasksToSide')
   }
 
   private _getHtmlForWebview (): string {

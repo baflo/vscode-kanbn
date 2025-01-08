@@ -98,9 +98,10 @@ export default class KanbnTaskPanel {
     kanbnFolderName: string,
     taskId: string | symbol,
     defaultColumn: string | null,
+    openToSide: boolean,
     taskCache: Map<string | symbol, KanbnTaskPanel>
   ) {
-    const column = vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One
+    const column = openToSide ? vscode.ViewColumn.Beside : vscode.window.activeTextEditor?.viewColumn
     this._extensionPath = extensionPath
     this._workspacePath = workspacePath
     this._kanbn = kanbn
@@ -224,8 +225,8 @@ export default class KanbnTaskPanel {
     )
   }
 
-  private createWebviewPanel (column: vscode.ViewColumn): vscode.WebviewPanel {
-    return vscode.window.createWebviewPanel(KanbnTaskPanel.viewType, 'New task', column, {
+  private createWebviewPanel (column?: vscode.ViewColumn): vscode.WebviewPanel {
+    return vscode.window.createWebviewPanel(KanbnTaskPanel.viewType, 'New task', column as any, {
       // Enable javascript in the webview
       enableScripts: true,
 
